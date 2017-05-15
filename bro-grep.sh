@@ -1,11 +1,22 @@
 #!/bin/sh -ex
 
-test -f $1 || exit 1
+date_filter=`date +%Y-%m-%d`
 
-patt_file=$1
+if [ ! -f $1 ] ; then
+	:> /dev/shm/ips
+	while [ ! -z "$1" ] ; do
+		echo $1 >> /dev/shm/ips
+		shift
+	done
+	patt_file=/dev/shm/ips
+else
+	patt_file=$1
+fi
 
-zgrep -f $patt_file /var/log/bro/`date +%Y-%m`*/known_hosts.* | tee /dev/stderr | while read found ; do
+(
+zgrep -f $patt_file /var/log/bro/$date_filter*/known_hosts.* | tee /dev/stderr | while read found ; do
 	path=`echo $found | sed -e 's/known_hosts/\*/' -e 's/\.gz:.*$/.gz/'`
 	zgrep -f $patt_file $path
 done
+) | less -S
 
