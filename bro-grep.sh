@@ -18,5 +18,5 @@ zgrep -f $patt_file /var/log/bro/$date_filter*/known_hosts.* | tee /dev/stderr |
 	path=`echo $found | sed -e 's/known_hosts/\*/' -e 's/\.gz:.*$/.gz/'`
 	zgrep -f $patt_file $path
 done
-) | less -S
+) | less -S -F
 
