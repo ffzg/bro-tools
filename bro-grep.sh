@@ -6,7 +6,7 @@ test ! -z "$DATE" && date_filter=$DATE
 if [ ! -f $1 ] ; then
 	:> /dev/shm/ips
 	while [ ! -z "$1" ] ; do
-		echo $1 >> /dev/shm/ips
+		echo $1 | sed 's/\./\\./g' >> /dev/shm/ips
 		shift
 	done
 	patt_file=/dev/shm/ips
