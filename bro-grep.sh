@@ -1,6 +1,7 @@
 #!/bin/sh -ex
 
 date_filter=`date +%Y-%m-%d`
+test ! -z "$DATE" && date_filter=$DATE
 
 if [ ! -f $1 ] ; then
 	:> /dev/shm/ips
