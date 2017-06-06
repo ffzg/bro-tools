@@ -152,16 +152,18 @@ event HTTP::log_http(rec: HTTP::Info)
 }
 
 # redis
-#
-#local redis_filter: Log::Filter =
-#                     [$name = "http-extracted-redis",
-#                      $writer = Log::WRITER_REDIS,
-#                      $config = table(["key"] = "dump_file",
-#                                      ["db"] = "4",
-#                                      ["server_host"] = "127.0.0.1",
-#                                      ["server_port"] = "6379",
-#                                      ["key_prefix"] = "",
-#                                      ["key_expire"] = "600",
-#                                      ["flush_period"] = "10")];
-#
-#Log::add_filter(NetControl::DROP, redis_filter);
+
+event bro_init() &priority=-5 {
+	local redis_filter: Log::Filter =
+	                     [$name = "http-extracted-redis",
+	                      $writer = Log::WRITER_REDIS,
+	                      $config = table(["key"] = "dump_file",
+	                                      ["db"] = "4",
+	                                      ["server_host"] = "127.0.0.1",
+	                                      ["server_port"] = "6379",
+	                                      ["key_prefix"] = "",
+	                                      ["key_expire"] = "600",
+	                                      ["flush_period"] = "10")];
+	
+	Log::add_filter(NetControl::DROP, redis_filter);
+}
