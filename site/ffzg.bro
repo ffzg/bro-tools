@@ -115,11 +115,11 @@ event Known::log_known_services(rec: Known::ServicesInfo)
 #          statsd_increment(s2, 1);
 #        }
 #     }
-#
-#     if(rec?$host)
-#     {
-#          statsd_set("bro.known_services.host",  fmt("%s", rec$host));
-#     }
+
+     if(rec?$host)
+     {
+          statsd_set("bro.known_services.host",  fmt("%s", rec$host));
+     }
 }
 
 # HTTP
@@ -167,3 +167,25 @@ event bro_init() &priority=-5 {
 	
 	Log::add_filter(NetControl::DROP, redis_filter);
 }
+
+event DHCP::log_dhcp(rec: DHCP::Info)
+{
+	statsd_increment("bro.log.dhcp", 1);
+	statsd_set("bro.dhcp.trans", fmt("%s",rec$trans_id) );
+}
+
+event Files::log_files(rec: Files::Info)
+{
+	statsd_increment("bro.log.files", 1);
+
+	local s = fmt("bro.files.%s.%s.%s"
+		, fmt("%s",rec$source)
+		, fmt("%s",rec$local_orig)
+		, fmt("%s",rec$is_orig)
+	);
+	statsd_increment(fmt("%s.count",s), 1);
+	statsd_increment(fmt("%s.seen_bytes",s), rec$seen_bytes);
+	statsd_increment(fmt("%s.missing_bytes",s), rec$missing_bytes);
+
+}
+
