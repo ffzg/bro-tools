@@ -107,14 +107,14 @@ event Known::log_known_services(rec: Known::ServicesInfo)
 {
      statsd_increment("bro.log.known_services", 1);
 
-#     if(rec?$service)
-#     {
-#	for ( svc in rec$service ) {
-#          local s = fmt("bro.known_services.service.%s", svc);
-#          local s2 = gsub(s, /::/, "_");
-#          statsd_increment(s2, 1);
-#        }
-#     }
+     if(rec?$service)
+     {
+	for ( svc in rec$service ) {
+          local s = fmt("bro.known_services.service.%s", svc);
+          local s2 = gsub(s, /::/, "_");
+          statsd_increment(s2, 1);
+        }
+     }
 
      if(rec?$host)
      {
