@@ -46,19 +46,18 @@ event DNS::log_dns(rec: DNS::Info)
 }
 
 # Notice Events
-
 event Notice::log_notice(rec: Notice::Info)
 {
      statsd_increment("bro.log.notice", 1); #Track Notice log volume
 
-     if(rec?$note)
-     {
-         local s = fmt("bro.notice.note.%s", rec$note);
-         local s2 = sub(s, /::/, "_"); #influxdb doesn't like :: so replace it with _
-         statsd_increment(s2, 1);
-     }
+#     if(rec?$note)
+#     {
+#         local s = fmt("bro.notice.note.%s", rec$note);
+#         local s2 = sub(s, /::/, "_"); #influxdb doesn't like :: so replace it with _
+#         statsd_increment(s2, 1);
+#     }
 }
-
+#
 # Conn Events
 
 event Conn::log_conn(rec: Conn::Info)
@@ -90,16 +89,17 @@ event RADIUS::log_radius(rec: RADIUS::Info)
 
 }
 
+# weird has too much tags to be useful
 event Weird::log_weird(rec: Weird::Info)
 {
      statsd_increment("bro.log.weird", 1);
-
-     if(rec?$name)
-     {
-         local s = fmt("bro.weird.name.%s", rec$name);
-         local s2 = gsub(s, /:/, "");
-         statsd_increment(s2, 1);
-     }
+#
+#     if(rec?$name)
+#     {
+#         local s = fmt("bro.weird.name.%s", rec$name);
+#         local s2 = gsub(s, /:/, "");
+#         statsd_increment(s2, 1);
+#     }
 }
 
 # known services
@@ -107,19 +107,19 @@ event Known::log_known_services(rec: Known::ServicesInfo)
 {
      statsd_increment("bro.log.known_services", 1);
 
-     if(rec?$service)
-     {
-	for ( svc in rec$service ) {
-          local s = fmt("bro.known_services.service.%s", svc);
-          local s2 = gsub(s, /::/, "_");
-          statsd_increment(s2, 1);
-        }
-     }
-
-     if(rec?$host)
-     {
-          statsd_set("bro.known_services.host",  fmt("%s", rec$host));
-     }
+#     if(rec?$service)
+#     {
+#	for ( svc in rec$service ) {
+#          local s = fmt("bro.known_services.service.%s", svc);
+#          local s2 = gsub(s, /::/, "_");
+#          statsd_increment(s2, 1);
+#        }
+#     }
+#
+#     if(rec?$host)
+#     {
+#          statsd_set("bro.known_services.host",  fmt("%s", rec$host));
+#     }
 }
 
 # HTTP
@@ -138,8 +138,8 @@ event HTTP::log_http(rec: HTTP::Info)
 
      }
 
-	if ( rec$id$resp_h in Site::private_address_space ) {
-		local s2 = fmt("bro.http.private.%s", rec$status_code);
+	if ( rec$id$resp_h in Site::local_nets ) {
+		local s2 = fmt("bro.http.local.%s", rec$status_code);
 		statsd_increment(s2, 1);
 
 		if ( rec?$uri && rec$uri == "/wp-login.php" ) {
