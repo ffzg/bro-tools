@@ -189,3 +189,13 @@ event Files::log_files(rec: Files::Info)
 
 }
 
+# https://github.com/0xxon/bro-postgresql
+event bro_init()
+{
+	local pg_filter: Log::Filter = [$name="postgres", $path="ssh", $writer=Log::WRITER_POSTGRESQL, $config=table(
+		["dbname"]="bro",
+		["hostname"]="127.0.0.1",
+		["port"]="5432"
+	)];
+	Log::add_filter(SSH::LOG, pg_filter);
+}
