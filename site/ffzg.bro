@@ -9,7 +9,6 @@
 
 redef SSH::password_guesses_limit=3;
 
-
 event NetControl::init()
 	{
 	local debug_plugin = NetControl::create_debug(T);
@@ -192,10 +191,17 @@ event Files::log_files(rec: Files::Info)
 # https://github.com/0xxon/bro-postgresql
 event bro_init()
 {
-	local pg_filter: Log::Filter = [$name="postgres", $path="ssh", $writer=Log::WRITER_POSTGRESQL, $config=table(
+	local ssh_filter: Log::Filter = [$name="postgres", $path="ssh", $writer=Log::WRITER_POSTGRESQL, $config=table(
 		["dbname"]="bro",
 		["hostname"]="127.0.0.1",
 		["port"]="5432"
 	)];
-	Log::add_filter(SSH::LOG, pg_filter);
+	Log::add_filter(SSH::LOG, ssh_filter);
+
+	local filter2: Log::Filter = [$name="postgres", $path="known_services", $writer=Log::WRITER_POSTGRESQL, $config=table(
+		["dbname"]="bro",
+		["hostname"]="127.0.0.1",
+		["port"]="5432"
+	)];
+	Log::add_filter(Known::SERVICES_LOG, filter2);
 }
