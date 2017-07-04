@@ -152,6 +152,13 @@ event HTTP::log_http(rec: HTTP::Info)
 
 # redis
 
+function only_some_notices(rec: Notice::Info) : bool
+{
+	statsd_increment("bro.notice.only_some", 1);
+	return rec?$note && ( rec$note == HTTP::SQL_Injection_Attacker || rec$note == Scan::Address_Scan || rec$note == Scan::Port_Scan ) && ! ( rec$src in Site::local_nets );
+	#return rec?$note && rec$note == HTTP::SQL_Injection_Attacker;
+}
+
 event bro_init() &priority=-5 {
 	local redis_filter: Log::Filter =
 	                     [$name = "http-extracted-redis",
@@ -165,6 +172,21 @@ event bro_init() &priority=-5 {
 	                                      ["flush_period"] = "10")];
 	
 	Log::add_filter(NetControl::DROP, redis_filter);
+
+	# detect sql injections
+	local redis_filter2: Log::Filter =
+	                     [$name = "notice-redis-sql",
+	                      $pred = only_some_notices,
+	                      $writer = Log::WRITER_REDIS,
+	                      $config = table(["key"] = "dump_file",
+	                                      ["db"] = "5",
+	                                      ["server_host"] = "127.0.0.1",
+	                                      ["server_port"] = "6379",
+	                                      ["key_prefix"] = "",
+	                                      ["key_expire"] = "864000",
+	                                      ["flush_period"] = "10")];
+	
+	Log::add_filter(Notice::LOG, redis_filter2);
 }
 
 event DHCP::log_dhcp(rec: DHCP::Info)
