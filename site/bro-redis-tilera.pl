@@ -39,11 +39,15 @@ $r2->psubscribe( $channel,
 						warn "IGNORED: db=$db\n";
 					}
 
-					warn "XXX $ip $expire | $msg\n";
+					if ( $ip !~ m/193.198.21[2345]/ ) {
+						warn "ADD: $ip $expire | $msg\n";
 
-					system 'ssh', '-i', '/home/dpavlin/.ssh/mtik/enesej', 'enesej@193.198.212.1', qq{/ip firewall address-list add list=public_blacklist address=$ip timeout=${expire}s comment="$msg"} if $ip;
+						system 'ssh', '-i', '/home/dpavlin/.ssh/mtik/enesej', 'enesej@193.198.212.1', qq{/ip firewall address-list add list=public_blacklist address=$ip timeout=${expire}s comment="$msg"} if $ip !~ m/193.198.21[2345]./;
 
-					system 'logger', '--tag=json', "--id=$db", $json_txt;
+						system 'logger', '--tag=json', "--id=$db", $json_txt;
+					} else {
+						warn "SKIP: $ip $expire | $msg\n";
+					}
 
 					$r->del( $key );
 				} else {
