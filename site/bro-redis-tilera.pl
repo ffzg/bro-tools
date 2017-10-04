@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# sudo apt-get install libredis-perl libjson-perl libjson-xs-perl libdata-dump-perl
+# sudo apt-get install libredis-perl libjson-perl libjson-xs-perl libdata-dump-perl libnet-subnet-perl
 #
 use warnings;
 use strict;
@@ -8,6 +8,21 @@ use strict;
 use Redis;
 use JSON;
 use Data::Dump qw)dump);
+use Net::Subnet;
+
+# CIDR notation
+my @whitelist = qw(
+188.252.128.0/17
+);
+open(my $fh, '<', '/etc/bro/networks.cfg');
+while(<$fh>) {
+	chomp;
+	next if /^\s*#/ || /^$/;
+	push @whitelist, $1 if /^(\S+)/;
+}
+warn "WHITELIST: ",dump( \@whitelist );
+my $in_whitelist = subnet_matcher @whitelist;
+
 
 my $r = Redis->new();
 my $r2 = Redis->new();
@@ -39,14 +54,14 @@ $r2->psubscribe( $channel,
 						warn "IGNORED: db=$db\n";
 					}
 
-					if ( $ip !~ m/193.198.21[2345]/ ) {
+					if ( $in_whitelist->( $ip ) ) {
+						warn "WHITELIST: $ip $expire | $msg\n";
+					} else {
 						warn "ADD: $ip $expire | $msg\n";
 
-						system 'ssh', '-i', '/home/dpavlin/.ssh/mtik/enesej', 'enesej@193.198.212.1', qq{/ip firewall address-list add list=public_blacklist address=$ip timeout=${expire}s comment="$msg"} if $ip !~ m/193.198.21[2345]./;
+						system 'ssh', '-i', '/home/dpavlin/.ssh/mtik/enesej', 'enesej@193.198.212.1', qq{/ip firewall address-list add list=public_blacklist address=$ip timeout=${expire}s comment="$msg"};
 
-						system 'logger', '--tag=json', "--id=$db", $json_txt;
-					} else {
-						warn "SKIP: $ip $expire | $msg\n";
+						system 'logger', '--tag=bro', "--id=$db", "$ip $expire $msg";
 					}
 
 					$r->del( $key );
