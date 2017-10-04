@@ -26,22 +26,26 @@ hook Notice::policy(n: Notice::Info)
 
 # redis
 
-function only_some_notices(rec: Notice::Info) : bool
-{
-	return rec?$note && ( rec$note == HTTP::SQL_Injection_Attacker || rec$note == Scan::Address_Scan || rec$note == Scan::Port_Scan ) && ! ( rec$src in Site::local_nets );
-	#return rec?$note && rec$note == HTTP::SQL_Injection_Attacker;
-}
-
 function only_non_local_nets(rec: Notice::Info) : bool
 {
-	return ! ( rec$src in Site::local_nets );
+	if ( rec$id$orig_h in Site::local_nets ) {
+		return F;
+	} else {
+		return T;
+	}
+}
+
+function only_some_notices(rec: Notice::Info) : bool
+{
+	return ( rec$note == HTTP::SQL_Injection_Attacker || rec$note == Scan::Address_Scan || rec$note == Scan::Port_Scan );
+	#return rec?$note && rec$note == HTTP::SQL_Injection_Attacker;
 }
 
 event bro_init() &priority=-5 {
 	local redis_filter: Log::Filter =
-	                     [$name = "http-extracted-redis",
+	                     [$name = "redis-netcontrol-drop",
 	                      $writer = Log::WRITER_REDIS,
-	                      $pred = only_non_local_nets,
+	                      #$pred = only_non_local_nets,
 	                      $config = table(["key"] = "dump_file",
 	                                      ["db"] = "4",
 	                                      ["server_host"] = "127.0.0.1",
@@ -54,7 +58,7 @@ event bro_init() &priority=-5 {
 
 	# detect sql injections
 	local redis_filter2: Log::Filter =
-	                     [$name = "notice-redis-sql",
+	                     [$name = "redis-notice-log",
 	                      $pred = only_some_notices,
 	                      $writer = Log::WRITER_REDIS,
 	                      $config = table(["key"] = "dump_file",
@@ -64,6 +68,6 @@ event bro_init() &priority=-5 {
 	                                      ["key_prefix"] = "",
 	                                      ["key_expire"] = "600",
 	                                      ["flush_period"] = "10")];
-	
+
 	Log::add_filter(Notice::LOG, redis_filter2);
 }
