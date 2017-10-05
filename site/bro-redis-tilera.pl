@@ -56,6 +56,7 @@ $r2->psubscribe( $channel,
 
 					if ( $in_whitelist->( $ip ) ) {
 						warn "WHITELIST: $ip $expire | $msg\n";
+						system 'logger', '--tag=bro', "--id=$db", "WHITELIST: $ip $expire $msg";
 					} else {
 						warn "ADD: $ip $expire | $msg\n";
 
