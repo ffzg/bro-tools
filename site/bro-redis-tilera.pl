@@ -12,7 +12,13 @@ use Net::Subnet;
 
 # CIDR notation
 my @whitelist = qw(
+161.53.0.0/16
+193.198.0.0/16
+82.132.0.0/17
+31.147.0.0/16 
 188.252.128.0/17
+94.253.128.0/17
+213.149.32.0/19
 );
 open(my $fh, '<', '/etc/bro/networks.cfg');
 while(<$fh>) {
