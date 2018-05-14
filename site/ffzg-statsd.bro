@@ -135,7 +135,8 @@ event HTTP::log_http(rec: HTTP::Info)
 event DHCP::log_dhcp(rec: DHCP::Info)
 {
 	statsd_increment("bro.log.dhcp", 1);
-	statsd_set("bro.dhcp.trans", fmt("%s",rec$trans_id) );
+	statsd_set("bro.dhcp.trans", gsub( fmt("%s",rec$mac), /:/, "") );
+	# statsd protocol uses : as delimiter, so we need to strip them all from mac
 }
 
 event Files::log_files(rec: Files::Info)
