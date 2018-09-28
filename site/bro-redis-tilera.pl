@@ -7,7 +7,7 @@ use strict;
 
 use Redis;
 use JSON;
-use Data::Dump qw)dump);
+use Data::Dump qw(dump);
 use Net::Subnet;
 
 # CIDR notation
