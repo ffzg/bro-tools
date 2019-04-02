@@ -4,7 +4,7 @@
 # this hides public IPs which are not interesting
 filter="(d4:ca:6d:01:4c:f2|00:0e:0c:5f:77:1e)"
 
-dir=/dev/shm/bro-mac2ip
+dir=/var/log/bro/.mac2ip
 test -d $dir || mkdir $dir
 
 ls -t /var/log/bro/*/conn.*gz | while read log_path ; do
