@@ -5,11 +5,6 @@
 use warnings;
 use strict;
 
-use Redis;
-use JSON;
-use Data::Dump qw(dump);
-use Net::Subnet;
-
 # CIDR notation
 my @whitelist = qw(
 161.53.0.0/16
@@ -27,7 +22,14 @@ my @whitelist = qw(
 95.168.96.0/19
 213.149.32.0/19
 31.147.204.112/32
+109.227.0.0/18
 );
+
+use Redis;
+use JSON;
+use Data::Dump qw(dump);
+use Net::Subnet;
+
 open(my $fh, '<', '/etc/bro/networks.cfg');
 while(<$fh>) {
 	chomp;
