@@ -6,29 +6,17 @@ use warnings;
 use strict;
 
 # CIDR notation
-my @whitelist = qw(
-161.53.0.0/16
-193.198.0.0/16
-82.132.0.0/17
-31.147.0.0/16 
-188.252.128.0/17
-188.252.196.0/22
-93.139.0.0/16
-93.140.0.0/16
-93.141.0.0/16
-93.142.0.0/16
-93.143.0.0/16
-94.253.128.0/17
-95.168.96.0/19
-213.149.32.0/19
-31.147.204.112/32
-109.227.0.0/18
-);
+open(my $wfh, '<', '/etc/whitelist.cdir');
+my @whitelist = <$wfh>;
+close($wfh);
 
 use Redis;
 use JSON;
 use Data::Dump qw(dump);
 use Net::Subnet;
+use Geo::IP;
+
+my $gi = Geo::IP->new(GEOIP_MEMORY_CACHE);
 
 open(my $fh, '<', '/etc/bro/networks.cfg');
 while(<$fh>) {
@@ -74,11 +62,17 @@ $r2->psubscribe( $channel,
 						warn "WHITELIST: $ip $expire | $msg\n";
 						system 'logger', '--tag=bro', "--id=$db", "WHITELIST: $ip $expire $msg";
 					} else {
-						warn "ADD: $ip $expire | $msg\n";
+						my $country = $gi->country_code_by_addr($ip);
+						if ( $country eq 'HR' ) {
+							warn "HR-IGNORE: $ip $country $expire | $msg\n";
+						} else {
+							warn "ADD: $ip $country $expire | $msg\n";
 
-						system 'ssh', '-i', '/home/dpavlin/.ssh/mtik/enesej', 'enesej@193.198.212.1', qq{/ip firewall address-list add list=public_blacklist address=$ip timeout=${expire}s comment="$msg"};
+							system 'ssh', '-i', '/home/dpavlin/.ssh/mtik/enesej', 'enesej@193.198.212.1', qq{/ip firewall address-list add list=public_blacklist address=$ip timeout=${expire}s comment="$msg"};
 
-						system 'logger', '--tag=bro', "--id=$db", "$ip $expire $msg";
+							system 'logger', '--tag=bro', "--id=$db", "$ip $expire $msg";
+
+						}
 					}
 
 					$r->del( $key );
