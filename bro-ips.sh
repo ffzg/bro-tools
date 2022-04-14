@@ -25,6 +25,18 @@ ls /var/log/bro/*/conn.*.log.gz | while read file ; do
 	fi
 done
 
+# calculate free and used IP addresses
+
+cat ips/*.ips | sort -u | ./sort-ip.pl  > /dev/shm/ips.used
+
+# 1 .. 255
+yes | head -255 | cat -n | awk '{ print $1 }' | \
+sed 's/^\(.*\)$/193.198.212.\1\n193.198.213.\1\n193.198.214.\1\n193.198.215.\1/' | ./sort-ip.pl > /dev/shm/ips.all
+diff -urw /dev/shm/ips.all /dev/shm/ips.used | grep '193.198' | grep '^-' | sed 's/^-//' > /dev/shm/ips.free
+rm /dev/shm/ips.all
+
+wc -l /dev/shm/ips.used /dev/shm/ips.free
+
 exit 0
 
 bro-cut id.orig_h id.resp_h < /var/log/bro/current/conn.log  | sed 's/\t/\n/' | grep '193\.198\.21[2345]\.' | sort -u | ~/sort-ip.pl
