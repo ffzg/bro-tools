@@ -18,7 +18,7 @@ ls /var/log/bro/*/conn.*.log.gz | while read file ; do
 		old_date=$date
 	fi
 	if [ ! -e "ips/$date/$name" ] ; then
-		zcat $file | bro-cut id.orig_h id.resp_h | sed 's/\t/\n/' | grep '193\.198\.21[2345]\.' | sort -u > ips/$date/$name
+		zcat $file | bro-cut id.orig_h | sed 's/\t/\n/' | grep '193\.198\.21[2345]\.' | sort -u > ips/$date/$name
 		git -C ips add $date/$name
 		git -C ips commit -m "$date $name" $date/$name
 		wc -l ips/$date/$name
