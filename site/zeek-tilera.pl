@@ -29,7 +29,7 @@ my $in_whitelist = subnet_matcher @whitelist;
 open(my $pipe, '-|', 'tail -F /opt/zeek/logs/current/notice.log');
 while(<$pipe>) {
 	chomp;
-	if ( m/(Scan::Address_Scan|Scan::Port_Scan)\s+(.+?)\t/ ) {
+	if ( m/(Scan::Address_Scan|Scan::Port_Scan|SSH::Password_Guessing)\s+(.+?)\t/ ) {
 		#print "# [$1] $2\n";
 		my $msg = $2;
 		my $ip = $1 if $msg =~ m/^($RE{net}{IPv4})/;
