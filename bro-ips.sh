@@ -1,8 +1,10 @@
 #!/bin/sh -e
 
 old_date=''
+#log_dir=/var/log/bro
+log_dir=/opt/zeek/logs
 
-ls /var/log/bro/*/conn.*.log.gz | while read file ; do
+ls $log_dir/*/conn.*.log.gz | while read file ; do
 	name=$( basename $file )
 	date=$( echo $file | cut -d/ -f5 )
 	#echo "# $old_date $name - $file"
@@ -18,7 +20,7 @@ ls /var/log/bro/*/conn.*.log.gz | while read file ; do
 		old_date=$date
 	fi
 	if [ ! -e "ips/$date/$name" ] ; then
-		zcat $file | bro-cut id.orig_h | sed 's/\t/\n/' | grep '193\.198\.21[2345]\.' | sort -u > ips/$date/$name
+		zcat $file | zeek-cut id.orig_h | sed 's/\t/\n/' | grep '193\.198\.21[2345]\.' | sort -u > ips/$date/$name
 		git -C ips add $date/$name
 		git -C ips commit -m "$date $name" $date/$name
 		wc -l ips/$date/$name
@@ -39,4 +41,4 @@ wc -l /dev/shm/ips.used /dev/shm/ips.free
 
 exit 0
 
-bro-cut id.orig_h id.resp_h < /var/log/bro/current/conn.log  | sed 's/\t/\n/' | grep '193\.198\.21[2345]\.' | sort -u | ~/sort-ip.pl
+zeek-cut id.orig_h id.resp_h < $log_dir/current/conn.log  | sed 's/\t/\n/' | grep '193\.198\.21[2345]\.' | sort -u | ~/sort-ip.pl
