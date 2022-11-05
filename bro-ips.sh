@@ -12,7 +12,7 @@ ls $log_dir/*/conn.*.log.gz | while read file ; do
 		test -d ips/$date || mkdir ips/$date
 		if [ ! -z "$old_date" -a ! -e "ips/$old_date.ips" ] ; then
 			echo "# create date $old_date summary"
-			cat ips/$old_date/* | sort -u > ips/$old_date.ips
+			cat ips/$old_date/* | awk '{ print $1 }' | sort -u > ips/$old_date.ips
 			git -C ips add $old_date.ips
 			git -C ips commit -m "$old_date" $old_date.ips
 			wc -l ips/$old_date.ips
@@ -20,7 +20,12 @@ ls $log_dir/*/conn.*.log.gz | while read file ; do
 		old_date=$date
 	fi
 	if [ ! -e "ips/$date/$name" ] ; then
-		zcat $file | zeek-cut id.orig_h | sed 's/\t/\n/' | grep '193\.198\.21[2345]\.' | sort -u > ips/$date/$name
+		# exclude tilera mac source
+		# d4:ca:6d:01:4c:ec
+		zcat $file | zeek-cut id.orig_h orig_l2_addr \
+			| grep -v d4:ca:6d:01:4c:ec \
+			| grep '193\.198\.21[2345]\.' \
+			| sort -u > ips/$date/$name
 		git -C ips add $date/$name
 		git -C ips commit -m "$date $name" $date/$name
 		wc -l ips/$date/$name
