@@ -9,9 +9,10 @@ grep --line-regex $ip ./ips/*.ips | while read file ; do
 	echo "# $file -> $path"
 	grep --line-regex $ip $path/* | while read file2 ; do
 		path2=$( echo $file2 | sed -e 's,\./ips,/var/log/bro,' -e "s/:$ip//" )
-		echo "## $file2 -> $path2"
+		path3=$( echo $file2 | sed -e 's,\./ips,/opt/zeek/logs,' -e "s/:$ip//" )
+		echo "## $file2 -> $path2 $path3"
 
-		zgrep "$ip[^0-9]" $path2
+		zgrep "$ip[^0-9]" $path2 $path3
 	done
 done
 
