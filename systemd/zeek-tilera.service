@@ -1,0 +1,14 @@
+[Unit]
+Description=ZEEK tail conn.log to tilera
+After=network.target
+After=redis.service
+
+[Service]
+ExecStart=/srv/bro-tools/site/zeek-tilera.pl
+RestartSec=10s
+Type=oneshot
+RemainAfterExit=yes
+TimeoutStopSec=600
+
+[Install]
+WantedBy=multi-user.target
