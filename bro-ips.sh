@@ -22,7 +22,7 @@ ls $log_dir/*/conn.*.log.gz | while read file ; do
 	if [ ! -e "ips/$date/$name" ] ; then
 		# exclude tilera mac source
 		# d4:ca:6d:01:4c:ec
-		zcat $file | zeek-cut id.orig_h orig_l2_addr \
+		zcat $file | /opt/zeek/bin/zeek-cut id.orig_h orig_l2_addr \
 			| grep -v d4:ca:6d:01:4c:ec \
 			| grep '193\.198\.21[2345]\.' \
 			| sort -u > ips/$date/$name
