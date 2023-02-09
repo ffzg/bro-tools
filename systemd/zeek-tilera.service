@@ -6,7 +6,7 @@ After=redis.service
 [Service]
 ExecStart=/srv/bro-tools/site/zeek-tilera.pl
 RestartSec=10s
-Type=oneshot
+Type=simple
 RemainAfterExit=yes
 TimeoutStopSec=600
 
