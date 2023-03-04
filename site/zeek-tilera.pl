@@ -5,6 +5,8 @@
 use warnings;
 use strict;
 
+my $alarm_timeout = 60;
+
 # CIDR notation
 open(my $wfh, '<', '/etc/whitelist.cdir');
 my @whitelist = <$wfh>;
@@ -26,6 +28,9 @@ while(<$fh>) {
 warn "WHITELIST: ",dump( \@whitelist );
 my $in_whitelist = subnet_matcher @whitelist;
 
+$SIG{ALRM} = sub { die "alarm\n" };
+alarm $alarm_timeout;
+
 open(my $pipe, '-|', 'tail -F /opt/zeek/logs/current/notice.log');
 while(<$pipe>) {
 	chomp;
@@ -35,9 +40,14 @@ while(<$pipe>) {
 		my $ip = $1 if $msg =~ m/^($RE{net}{IPv4})/;
 		my $expire = 60 * 60; # 1h
 
+		if ( ! $ip ) {
+			print "NO ipv4 in $msg\n";
+			next;
+		}
+
 		if ( $in_whitelist->( $ip ) ) {
 			warn "WHITELIST: $ip $expire | $msg\n";
-			system 'logger', '--tag=zeek', "WHITELIST: $ip $expire $msg";
+			#system 'logger', '--tag=zeek', "WHITELIST: $ip $expire $msg";
 		} else {
 			my $country = $gi->country_code_by_addr($ip);
 			if ( $country eq 'HR' ) {
@@ -47,12 +57,14 @@ while(<$pipe>) {
 
 				system 'ssh', '-i', '/home/dpavlin/.ssh/mtik/enesej', 'enesej@193.198.212.1', qq{/ip firewall address-list add list=public_blacklist address=$ip timeout=${expire}s comment="$msg"};
 
-				system 'logger', '--tag=zeek', "$ip $expire $msg";
+				#system 'logger', '--tag=zeek', "$ip $expire $msg";
 
 			}
 		}
 	} else {
-		print STDERR '.';
+		#print STDERR '.';
 	}
+
+	alarm $alarm_timeout;
 }
 
