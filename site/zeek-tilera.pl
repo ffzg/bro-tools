@@ -5,7 +5,7 @@
 use warnings;
 use strict;
 
-my $alarm_timeout = 60;
+my $alarm_timeout = 180;
 
 # CIDR notation
 open(my $wfh, '<', '/etc/whitelist.cdir');
@@ -28,10 +28,16 @@ while(<$fh>) {
 warn "WHITELIST: ",dump( \@whitelist );
 my $in_whitelist = subnet_matcher @whitelist;
 
-$SIG{ALRM} = sub { die "alarm\n" };
+# alarm is needed because tail sometimes returns error
+# tail: '/opt/zeek/logs/current/notice.log' has become inaccessible: No such file or directory
+# and stops follwing file
+$SIG{ALRM} = sub {
+	system "systemctl reset-failed zeek-tilera";
+	die "alarm\n"
+};
 alarm $alarm_timeout;
 
-open(my $pipe, '-|', 'tail -F /opt/zeek/logs/current/notice.log');
+open(my $pipe, '-|', 'tail --follow=name --retry /opt/zeek/logs/current/notice.log');
 while(<$pipe>) {
 	chomp;
 	if ( m/(Scan::Address_Scan|Scan::Port_Scan|SSH::Password_Guessing)\s+(.+?)\t/ ) {
