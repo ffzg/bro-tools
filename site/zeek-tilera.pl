@@ -40,7 +40,7 @@ alarm $alarm_timeout;
 open(my $pipe, '-|', 'tail --follow=name --retry /opt/zeek/logs/current/notice.log');
 while(<$pipe>) {
 	chomp;
-	if ( m/(Scan::Address_Scan|Scan::Port_Scan|SSH::Password_Guessing)\s+(.+?)\t/ ) {
+	if ( m/(Scan::Address_Scan|Scan::Port_Scan|SSH::Password_Guessing|HTTP::SQL_Injection_Attacker)\s+(.+?)\t/ ) {
 		#print "# [$1] $2\n";
 		my $msg = $2;
 		my $ip = $1 if $msg =~ m/^($RE{net}{IPv4})/;
