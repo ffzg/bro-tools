@@ -9,6 +9,7 @@ ls $log_dir/*/conn.*.log.gz | while read file ; do
 	date=$( echo $file | cut -d/ -f5 )
 	#echo "# $old_date $name - $file"
 	if [ "$old_date" != "$date" ] ; then
+		echo "# $date";
 		test -d ips/$date || mkdir ips/$date
 		if [ ! -z "$old_date" -a ! -e "ips/$old_date.ips" ] ; then
 			echo "# create date $old_date summary"
@@ -25,6 +26,7 @@ ls $log_dir/*/conn.*.log.gz | while read file ; do
 		zcat $file | /opt/zeek/bin/zeek-cut id.orig_h orig_l2_addr \
 			| grep -v d4:ca:6d:01:4c:ec \
 			| grep '193\.198\.21[2345]\.' \
+			| grep -v -- '-$' \
 			| sort -u > ips/$date/$name
 		git -C ips add $date/$name
 		git -C ips commit -m "$date $name" $date/$name
