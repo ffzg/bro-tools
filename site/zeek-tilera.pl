@@ -61,7 +61,7 @@ while(<$pipe>) {
 			} else {
 				warn "ADD: $ip $country $expire | $msg\n";
 
-				system 'ssh', '-i', '/home/dpavlin/.ssh/mtik/enesej', 'enesej@193.198.212.1', qq{/ip firewall address-list add list=public_blacklist address=$ip timeout=${expire}s comment="$msg"};
+				system 'ssh1', '-i', '/home/dpavlin/.ssh/mtik/enesej', 'enesej@193.198.212.1', qq{/ip firewall address-list add list=public_blacklist address=$ip timeout=${expire}s comment="$msg"};
 
 				#system 'logger', '--tag=zeek', "$ip $expire $msg";
 
