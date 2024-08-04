@@ -43,7 +43,7 @@ while(<$pipe>) {
 	if ( m/(Scan::Address_Scan|Scan::Port_Scan|SSH::Password_Guessing|HTTP::SQL_Injection_Attacker)\s+(.+?)\t/ ) {
 		#print "# [$1] $2\n";
 		my $msg = $2;
-		my $ip = $1 if $msg =~ m/^($RE{net}{IPv4})/;
+		my $ip = $1 if $msg =~ m/($RE{net}{IPv4})/;
 		my $expire = 60 * 60; # 1h
 
 		if ( ! $ip ) {
