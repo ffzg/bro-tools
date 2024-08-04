@@ -17,6 +17,8 @@ use Net::Subnet;
 use Geo::IP;
 use Regexp::Common qw(net);
 
+my $debug = $ENV{DEBUG} || 0;
+
 my $gi = Geo::IP->new(GEOIP_MEMORY_CACHE);
 
 open(my $fh, '<', '/etc/bro/networks.cfg');
@@ -40,8 +42,8 @@ alarm $alarm_timeout;
 open(my $pipe, '-|', 'tail --follow=name --retry /opt/zeek/logs/current/notice.log');
 while(<$pipe>) {
 	chomp;
-	if ( m/(Scan::Address_Scan|Scan::Port_Scan|SSH::Password_Guessing|HTTP::SQL_Injection_Attacker)\s+(.+?)\t/ ) {
-		#print "# [$1] $2\n";
+	if ( m/(Scan::[\w_]+|SSH::Password_Guessing|HTTP::SQL_Injection_Attacker)\s+(.+?)\t/ ) {
+		print "# [$1] $2\n" if $debug;
 		my $msg = $2;
 		my $ip = $1 if $msg =~ m/($RE{net}{IPv4})/;
 		my $expire = 60 * 60; # 1h
@@ -68,7 +70,7 @@ while(<$pipe>) {
 			}
 		}
 	} else {
-		#print STDERR '.';
+		print STDERR '.' if $debug;
 	}
 
 	alarm $alarm_timeout;
